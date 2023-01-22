@@ -1,14 +1,11 @@
 from config import config
+from rich import print
 import util
-from lib import (
-    CLR,
-    cprint,
-)
 
 
 def on_no_command(quickparse):
     if quickparse.args:
-        cprint("Unknown: '%s'  //  ask for 'help'" % (' '.join(quickparse.args), ), CLR.yellow)
+        util.make_openai_api_request(' '.join(quickparse.parameters))
     else:
         show_help()
 

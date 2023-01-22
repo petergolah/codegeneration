@@ -1,9 +1,10 @@
 import sys
 from quickparse import QuickParse
 from reploncli import reploncli
+from rich import print
 
+from util import get_prompt
 import commands
-from lib import CLR
 
 
 commands_config = {
@@ -19,7 +20,7 @@ def cli_function(cli_args=None):
     try:
         QuickParse(commands_config, options_config, cli_args=cli_args).execute()
     except AssertionError as ae:
-        print(f"{CLR.yellow}{ae}{CLR.reset}")
+        print(f"[yellow]{ae}[/]")
 
 if __name__ == '__main__':
-    reploncli(cli_function, (sys.argv[1:2] or [''])[0] in ('r', 'repl'), commands.show_help, f"{CLR.yellow}»{CLR.reset} ")
+    reploncli(cli_function, (sys.argv[1:2] or [''])[0] in ('r', 'repl'), commands.show_help, get_prompt)
