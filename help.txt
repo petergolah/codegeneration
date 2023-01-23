@@ -1,3 +1,3 @@
-[_C_HEAD]CodeGeneration[/]
-[_C_KEY]help[/]  [_C_PUNCT]─[/]  [_C_TEXT]see this help[/]
-[_C_KEY]repl[/]  [_C_PUNCT]─[/]  [_C_TEXT]start CodeGeneration in REPL mode[/]
+[C_HEAD]CodeGeneration[/]
+[C_KEY]help[/]  [C_PUNCT]─[/]  [C_TEXT]see this help[/]
+[C_KEY]repl[/]  [C_PUNCT]─[/]  [C_TEXT]start CodeGeneration in REPL mode[/]
