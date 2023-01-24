@@ -2,15 +2,28 @@ OPENAI_API_KEY_FILE_NAME: api.key
 HELP_FILE_NAME: help.txt
 
 PROFILES:
-  - name: python
+  - name: python-text
     model: text-davinci-003
-    temperature: 0
-    max_tokens: 1000
+    temperature: 0.5
+    max_tokens: 500
     prefix: generate Python code for this
+  - name: python
+    model: code-davinci-002
+    temperature: 0.3
+    max_tokens: 200
+    prefix: generate Python code for this
+  - name: text
+    model: text-davinci-003
+    temperature: 0.5
+    max_tokens: 500
+    prefix: ''
 
 COLOR_TAGS:
-  C_HEAD: spring_green1
+  C_HEAD: pale_turquoise1
+  C_SUBHEAD: spring_green3
   C_KEY: deep_sky_blue1
   C_TEXT: light_slate_blue
   C_PUNCT: grey53
   C_LINK: navajo_white1
+  C_COMMENT: grey46
+  C_CODE: dark_sea_green1

@@ -10,10 +10,12 @@ import commands
 commands_config = {
     '': commands.on_no_command,
     ('h', 'help'): commands.show_help,
+    ('p', 'profiles'): commands.show_profiles,
 }
 
 options_config = [
     # ('-a', '--all', bool),
+    ('-p', '--profile', str),
 ]
 
 def cli_function(cli_args=None):

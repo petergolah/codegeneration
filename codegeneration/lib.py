@@ -1,5 +1,7 @@
 import os
+import shutil
 from functools import reduce
+
 from config import config
 
 
@@ -15,3 +17,7 @@ def apply_color_tags_in_text(text):
 def write_txt_file_content(file_name, content):
     with open(file_name, 'w', encoding='utf8') as text_file:
         text_file.write(content)
+
+def hl():
+    terminal_width = shutil.get_terminal_size().columns
+    return f"[bright_black]{'·' * terminal_width}[/]"
