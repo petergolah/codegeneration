@@ -1,4 +1,6 @@
 import os
+import time
+from datetime import datetime
 from rich import print as richprint
 from rich.console import Console
 import openai
@@ -11,7 +13,7 @@ console = Console()
 prompt = None
 profile_index = 1
 
-help_text = lib.apply_color_tags_in_text(lib.get_txt_file_content(config('HELP_FILE_NAME')))
+help_text = lib.apply_color_tags_in_text(lib.read_txt_file(config('HELP_FILE_NAME')))
 
 api_key_not_found_text = lib.apply_color_tags_in_text('''
 [C_HEAD]OpanAI API key not found[/]
@@ -58,13 +60,13 @@ def store_api_key(file_name):
     richprint(api_key_not_found_text)
     api_key = input('> ')
     assert len(api_key) > 0, "an API key will be needed for the app to work"
-    lib.write_txt_file_content(file_name, api_key)
+    lib.write_txt_file(file_name, api_key)
 
 def get_openai_api_key():
     file_name = config('OPENAI_API_KEY_FILE_NAME')
     if not os.path.exists(file_name):
         store_api_key(file_name)
-    return lib.get_txt_file_content(file_name)
+    return lib.read_txt_file(file_name)
 
 def get_active_profile(_profile_index):
     global profile_index
@@ -75,9 +77,11 @@ def get_active_profile(_profile_index):
     return profiles[profile_index - 1]
 
 def build_completion_params(aiprompt, profile):
+    # optional profile attributes
+    prefix = profile.get('prefix', '')
     return {
         'model': profile['model'],
-        'prompt': f"{profile['prefix']}: {aiprompt}" if len(profile['prefix']) > 0 else aiprompt,
+        'prompt': f"{prefix}: {aiprompt}" if len(prefix) > 0 else aiprompt,
         'temperature': profile['temperature'],
         'max_tokens': profile['max_tokens'],
     }
@@ -88,6 +92,35 @@ def print_request_header(profile, completion_params):
     richprint(f"[gold3]{completion_params['prompt']}[/]")
     richprint(lib.hl())
 
+def log_response(completion_params, response, dt):
+    separator_width = 120
+    header_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+    header_padding = '-' * ((separator_width - len(header_timestamp) - 2) // 2)
+    header = f"{header_padding} {header_timestamp} {header_padding}"
+    params = []
+    for key, value in completion_params.items():
+        if key != 'prompt':
+            params.append(f"{key}: {value}")
+    paramsstr = ' / '.join(params)
+    stats = []
+    for key, value in response['usage'].items():
+        stats.append(f"{key}: {value}")
+    stats.append(f"timetake: {dt:.2f} s")
+    stats.append(f"generated: {datetime.utcfromtimestamp(response['created']).isoformat()} UTC")
+    statsstr = ' / '.join(stats)
+    choices = [choice['text'].strip() for choice in response['choices']]
+    choices_with_headers = []
+    for index, choice in enumerate(choices):
+        choiceheader = f"--- Choice {(str(index + 1) + ' ') if len(choices) > 1 else ''}"
+        choiceheader += '-' * (len(header) - len(choiceheader))
+        choices_with_headers.append(choiceheader)
+        choices_with_headers.append(choice)
+    choices_with_headers_str = '\n'.join(choices_with_headers)
+    statsheader = '--- Transformer Stats ' + '-' * (len(header) - 22)
+    promptheader = '--- Prompt ' + '-' * (len(header) - 11)
+    loglines = [header, paramsstr, statsheader, statsstr, promptheader, completion_params['prompt'], choices_with_headers_str]
+    lib.append_to_txt_file(config('LOG_FILE_NAME'), '\n'.join(loglines) + '\n')
+
 def make_openai_api_request(aiprompt, _profile_index):
     assert len(aiprompt) > 0, "give a prompt to the transformer"
     openai.api_key = get_openai_api_key()
@@ -95,8 +128,11 @@ def make_openai_api_request(aiprompt, _profile_index):
     completion_params = build_completion_params(aiprompt, profile)
     print_request_header(profile, completion_params)
     try:
+        t0 = time.monotonic()
         response = openai.Completion.create(**completion_params)
+        t1 = time.monotonic()
     except Exception as e:
         raise AssertionError(str(e))
+    log_response(completion_params, response, t1-t0)
     print_response(response)
     richprint(lib.hl())
